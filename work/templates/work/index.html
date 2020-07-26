@@ -1,0 +1,124 @@
+{% load bootstrap3 %}
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+
+
+    <title>Тестовая приложение</title>
+    <script src="{% bootstrap_jquery_url %}"></script>
+    {% bootstrap_css %}
+    <script type="text/javascript">
+        function getParentNode(oThis, sNodeName) {
+    while(oThis.nodeName != sNodeName && oThis.nodeName != 'BODY' )  {
+        oThis=oThis.parentNode;
+    }
+    return oThis.nodeName!='BODY'?oThis:null;
+};
+
+function send(obj) {
+  var tr = getParentNode(obj, 'TR');
+  var active_text = $(tr).find("#coord");
+  var text = active_text.val();
+  var number = $(tr).attr('id');
+  $("#info").hide();
+  $.ajax({
+        type: "GET",
+        url: "/unload/",
+        data:{
+            'coords':text,
+            'number':number
+        },
+        dataType: "html",
+        cache: false,
+        success: function(data){
+        	data = $.parseJSON(data)
+        	console.log(data)
+            if (data['text_response']!=""){
+                $("#info").text(data['text_response']);
+                $("#info").show();
+            }
+            else {
+                active_text[0].value = "";
+                location.reload();
+            }
+        }
+  });
+}
+
+
+</script>
+  </head>
+  <body>
+  <div class="alert alert-info"  style="display: none" id="info" ></div>
+   <div class="panel_world panel-primary">
+      <div class="panel panel-info">
+        <div class="panel-heading">
+          <h4>
+              Таблица загрузок
+          </h4>
+        </div>
+          <table class="table table-striped">
+            <thead>
+              <tr>
+                <th>Бортовой номер</th>
+                <th>Модель</th>
+                <th>Макс. грузоподъемность</th>
+                <th>Текущий вес</th>
+                  <th>Перегруз, %</th>
+                  <th>Координаты разгрузки (x,y)</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for el in loadings%}
+                <tr id = {{ el.id }}>
+                  <td id='number'>{{ el.truck.board_number }}</td>
+                  <td>{{ el.truck.truck_catalog.model }}</td>
+                  <td>{{ el.truck.truck_catalog.max_weight }}</td>
+                    <td>{{ el.weight }}</td>
+                    <td>{{ el.over_weight }}</td>
+                    <td><input  id="coord"></td>
+                  <td>
+                      <button type="button" class="btn btn-primary" onclick = "send(this)">
+                        <span class="glyphicon  glyphicon-pencil"></span>
+                      </button>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+   </div>
+
+     <div class="panel_world panel-primary">
+      <div class="panel panel-info">
+        <div class="panel-heading">
+          <h4>
+              Таблица результатов
+          </h4>
+        </div>
+          <table class="table table-striped">
+            <thead>
+              <tr>
+                <th>Название склада</th>
+                <th>Объем до разгрузки, т.</th>
+                <th>Объем после разгрузки, т.</th>
+                <th>Качественные хар-ки после разгрузки</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for el in results%}
+                <tr id = {{ el.id }}>
+                  <td>{{ el.storage.name }}</td>
+                  <td>{{ el.storage_prev_value }}</td>
+                  <td>{{ el.storage_value }}</td>
+                    <td>{{ el.get_result }}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+   </div>
+  </body>
+</html>
